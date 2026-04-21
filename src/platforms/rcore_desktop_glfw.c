@@ -2104,6 +2104,16 @@ static void MouseButtonCallback(GLFWwindow *window, int button, int action, int 
     CORE.Input.Mouse.currentButtonState[button] = action;
     CORE.Input.Touch.currentTouchState[button] = action;
 
+    // NOTE: Fix for tap-to-click: press+release can arrive in same frame.
+    if (action == GLFW_RELEASE) {
+        // If previous state is GLFW_RELEASE, the press was never seen.
+        // Force previous state to GLFW_PRESS to ensure the tap is detected.
+        if (CORE.Input.Mouse.previousButtonState[button] == action)
+            CORE.Input.Mouse.previousButtonState[button] = GLFW_PRESS;
+        if (CORE.Input.Touch.previousTouchState[button] == action)
+            CORE.Input.Touch.previousTouchState[button] = GLFW_PRESS;
+    }
+
 #if SUPPORT_GESTURES_SYSTEM && SUPPORT_MOUSE_GESTURES
     // Process mouse events as touches to be able to use mouse-gestures
     GestureEvent gestureEvent = { 0 };
